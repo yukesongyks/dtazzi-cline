@@ -6,6 +6,8 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import type {
+	RuntimeAgentInstallCheckRequest,
+	RuntimeAgentInstallCheckResponse,
 	RuntimeAntcodeIssueDetailRequest,
 	RuntimeAntcodeIssueDetailResponse,
 	RuntimeAntcodeIssuesRequest,
@@ -102,6 +104,8 @@ import type {
 	RuntimeWorktreeEnsureResponse,
 } from "../core/api-contract";
 import {
+	runtimeAgentInstallCheckRequestSchema,
+	runtimeAgentInstallCheckResponseSchema,
 	runtimeAntcodeIssueDetailRequestSchema,
 	runtimeAntcodeIssueDetailResponseSchema,
 	runtimeAntcodeIssuesRequestSchema,
@@ -315,6 +319,10 @@ export interface RuntimeTrpcContext {
 			scope: RuntimeTrpcWorkspaceScope,
 			input: RuntimeAntcodeIssueDetailRequest,
 		) => Promise<RuntimeAntcodeIssueDetailResponse>;
+		checkAgentInstallation: (
+			scope: RuntimeTrpcWorkspaceScope | null,
+			input: RuntimeAgentInstallCheckRequest,
+		) => Promise<RuntimeAgentInstallCheckResponse>;
 	};
 	workspaceApi: {
 		loadGitSummary: (
@@ -633,6 +641,12 @@ export const runtimeAppRouter = t.router({
 			.output(runtimeAntcodeIssueDetailResponseSchema)
 			.query(async ({ ctx, input }) => {
 				return await ctx.runtimeApi.getAntcodeIssueDetail(ctx.workspaceScope, input);
+			}),
+		checkAgentInstallation: t.procedure
+			.input(runtimeAgentInstallCheckRequestSchema)
+			.output(runtimeAgentInstallCheckResponseSchema)
+			.mutation(async ({ ctx, input }) => {
+				return await ctx.runtimeApi.checkAgentInstallation(ctx.workspaceScope, input);
 			}),
 	}),
 	workspace: t.router({

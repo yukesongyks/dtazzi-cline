@@ -170,6 +170,7 @@ const SETTINGS_AGENT_ORDER: readonly RuntimeAgentId[] = [
 	"cline",
 	"claude",
 	"antcc",
+	"cfuse",
 	"codex",
 	"droid",
 	"kiro",
@@ -931,7 +932,9 @@ export function RuntimeSettingsDialog({
 							? "kimi"
 							: selectedAgentId === "kimi-code"
 								? "kimi-code"
-								: "claude",
+								: selectedAgentId === "cfuse"
+									? "cfuse"
+									: "claude",
 			),
 		);
 	};
@@ -1178,7 +1181,7 @@ export function RuntimeSettingsDialog({
 											}}
 											disabled={controlsDisabled || agentEditor.id !== null}
 										>
-											{(["cline", "claude", "codex", "kimi", "kimi-code"] as const).map((agentType) => (
+											{(["cline", "claude", "codex", "kimi", "kimi-code", "cfuse"] as const).map((agentType) => (
 												<option key={agentType} value={agentType}>
 													{getRuntimeAgentCatalogEntry(agentType)?.label ?? agentType}
 												</option>

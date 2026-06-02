@@ -4,14 +4,23 @@ const commandDiscoveryMocks = vi.hoisted(() => ({
 	isBinaryAvailableOnPath: vi.fn(),
 }));
 
+const childProcessMocks = vi.hoisted(() => ({
+	spawn: vi.fn(),
+}));
+
 vi.mock("../../../src/terminal/command-discovery.js", () => ({
 	isBinaryAvailableOnPath: commandDiscoveryMocks.isBinaryAvailableOnPath,
+}));
+
+vi.mock("node:child_process", () => ({
+	spawn: childProcessMocks.spawn,
 }));
 
 import { createDefaultConfiguredAgents } from "../../../src/config/runtime-agent-config";
 import type { RuntimeConfigState } from "../../../src/config/runtime-config";
 import {
 	buildRuntimeConfigResponse,
+	detectAgentInstallation,
 	detectInstalledCommands,
 	resolveAgentCommand,
 } from "../../../src/terminal/agent-registry";
@@ -93,7 +102,7 @@ describe("agent-registry", () => {
 		const detected = detectInstalledCommands();
 
 		expect(detected).toEqual(["claude"]);
-		expect(commandDiscoveryMocks.isBinaryAvailableOnPath).toHaveBeenCalledTimes(11);
+		expect(commandDiscoveryMocks.isBinaryAvailableOnPath).toHaveBeenCalledTimes(12);
 	});
 
 	it("treats shell-only agents as unavailable", () => {
@@ -286,5 +295,132 @@ describe("buildRuntimeConfigResponse", () => {
 		process.env.debug_mode = "1";
 		const response = buildRuntimeConfigResponse(createRuntimeConfigState(), createClineProviderSettings());
 		expect(response.debugModeEnabled).toBe(true);
+	});
+});
+
+describe("detectAgentInstallation", () => {
+	beforeEach(() => {
+		childProcessMocks.spawn.mockReset();
+	});
+
+	function mockSpawnSuccess(version: string) {
+		childProcessMocks.spawn.mockImplementation(() => {
+			const listeners: Record<string, Array<(...args: unknown[]) => void>> = {};
+			let stdoutData = "";
+			const proc = {
+				stdout: {
+					on: (event: string, cb: (...args: unknown[]) => void) => {
+						if (!listeners[event]) listeners[event] = [];
+						listeners[event].push(cb);
+						if (event === "data") {
+							stdoutData = version;
+							setTimeout(() => {
+								listeners["data"]?.forEach((cb) => cb(version));
+							}, 0);
+						}
+					},
+				},
+				on: (event: string, cb: (...args: unknown[]) => void) => {
+					if (!listeners[event]) listeners[event] = [];
+					listeners[event].push(cb);
+					if (event === "close") {
+						setTimeout(() => {
+							listeners["close"]?.forEach((cb) => cb(0));
+						}, 0);
+					}
+				},
+			};
+			return proc;
+		});
+	}
+
+	function mockSpawnFailure() {
+		childProcessMocks.spawn.mockImplementation(() => {
+			const listeners: Record<string, Array<(...args: unknown[]) => void>> = {};
+			const proc = {
+				stdout: {
+					on: (_event: string, _cb: (...args: unknown[]) => void) => {},
+				},
+				on: (event: string, cb: (...args: unknown[]) => void) => {
+					if (!listeners[event]) listeners[event] = [];
+					listeners[event].push(cb);
+					if (event === "close") {
+						setTimeout(() => {
+							listeners["close"]?.forEach((cb) => cb(1));
+						}, 0);
+					}
+				},
+			};
+			return proc;
+		});
+	}
+
+	function mockSpawnTimeout() {
+		childProcessMocks.spawn.mockImplementation(() => {
+			const listeners: Record<string, Array<(...args: unknown[]) => void>> = {};
+			const proc = {
+				stdout: {
+					on: (_event: string, _cb: (...args: unknown[]) => void) => {},
+				},
+				on: (event: string, cb: (...args: unknown[]) => void) => {
+					if (!listeners[event]) listeners[event] = [];
+					listeners[event].push(cb);
+					if (event === "error") {
+						setTimeout(() => {
+							listeners["error"]?.forEach((cb) => cb(new Error("timeout")));
+						}, 0);
+					}
+				},
+			};
+			return proc;
+		});
+	}
+
+	it("returns installed=true with version when PATH lookup succeeds", async () => {
+		commandDiscoveryMocks.isBinaryAvailableOnPath.mockReturnValue(true);
+		mockSpawnSuccess("0.6.0");
+
+		const result = await detectAgentInstallation("kimi");
+
+		expect(result.installed).toBe(true);
+		expect(result.resolvedBinary).toBe("kimi");
+		expect(result.version).toBe("0.6.0");
+	});
+
+	it("returns installed=true with resolved absolute path when PATH fails but absolute path succeeds", async () => {
+		commandDiscoveryMocks.isBinaryAvailableOnPath.mockImplementation((path: string) => {
+			if (path === "/usr/local/bin/kimi") return true;
+			if (path === "kimi") return false;
+			return false;
+		});
+		mockSpawnSuccess("0.42.0");
+
+		const result = await detectAgentInstallation("/usr/local/bin/kimi");
+
+		expect(result.installed).toBe(true);
+		expect(result.resolvedBinary).toBe("/usr/local/bin/kimi");
+		expect(result.version).toBe("0.42.0");
+	});
+
+	it("returns installed=false when binary does not exist", async () => {
+		commandDiscoveryMocks.isBinaryAvailableOnPath.mockReturnValue(false);
+
+		const result = await detectAgentInstallation("nonexistent-binary");
+
+		expect(result.installed).toBe(false);
+		expect(result.resolvedBinary).toBe("nonexistent-binary");
+		expect(result.version).toBeUndefined();
+		expect(childProcessMocks.spawn).not.toHaveBeenCalled();
+	});
+
+	it("returns installed=true with undefined version when --version times out", async () => {
+		commandDiscoveryMocks.isBinaryAvailableOnPath.mockReturnValue(true);
+		mockSpawnTimeout();
+
+		const result = await detectAgentInstallation("kimi");
+
+		expect(result.installed).toBe(true);
+		expect(result.resolvedBinary).toBe("kimi");
+		expect(result.version).toBeUndefined();
 	});
 });

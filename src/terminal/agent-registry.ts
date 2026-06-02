@@ -10,6 +10,7 @@ import type {
 } from "../core/api-contract";
 import { getAgentDefaultLabel } from "../config/runtime-agent-config";
 import { isBinaryAvailableOnPath } from "./command-discovery";
+import { spawn } from "node:child_process";
 
 export interface ResolvedAgentCommand {
 	agentInstanceId: string;
@@ -19,6 +20,12 @@ export interface ResolvedAgentCommand {
 	binary: string;
 	args: string[];
 	env: Record<string, string>;
+}
+
+export interface AgentInstallCheckResult {
+	installed: boolean;
+	resolvedBinary: string;
+	version?: string;
 }
 
 function getDefaultArgs(agentId: RuntimeAgentId): string[] {
@@ -51,6 +58,64 @@ function parseBooleanEnvValue(value: string | undefined): boolean {
 function isRuntimeDebugModeEnabled(): boolean {
 	const debugModeValue = process.env.KANBAN_DEBUG_MODE ?? process.env.DEBUG_MODE ?? process.env.debug_mode;
 	return parseBooleanEnvValue(debugModeValue);
+}
+
+function tryGetVersion(binary: string, timeoutMs = 5000): Promise<string | undefined> {
+	return new Promise((resolve) => {
+		try {
+			const proc = spawn(binary, ["--version"], {
+				timeout: timeoutMs,
+				stdio: ["ignore", "pipe", "ignore"],
+			});
+			let stdout = "";
+			proc.stdout?.on("data", (chunk) => {
+				stdout += chunk.toString();
+			});
+			proc.on("close", (code) => {
+				if (code === 0 && stdout.trim()) {
+					resolve(stdout.trim().split("\n")[0]);
+				} else {
+					resolve(undefined);
+				}
+			});
+			proc.on("error", () => {
+				resolve(undefined);
+			});
+		} catch {
+			resolve(undefined);
+		}
+	});
+}
+
+export async function detectAgentInstallation(command: string): Promise<AgentInstallCheckResult> {
+	const parsedCommand = parseConfiguredAgentCommand(command);
+	if (!parsedCommand.ok) {
+		return {
+			installed: false,
+			resolvedBinary: command,
+		};
+	}
+
+	const { binary } = parsedCommand.value;
+	const isAbsolutePath = binary.includes("/") || binary.includes("\\");
+
+	if (isAbsolutePath) {
+		const exists = isBinaryAvailableOnPath(binary);
+		const version = exists ? await tryGetVersion(binary) : undefined;
+		return {
+			installed: exists,
+			resolvedBinary: binary,
+			version,
+		};
+	}
+
+	const exists = isBinaryAvailableOnPath(binary);
+	const version = exists ? await tryGetVersion(binary) : undefined;
+	return {
+		installed: exists,
+		resolvedBinary: binary,
+		version,
+	};
 }
 
 export function detectInstalledCommands(): string[] {

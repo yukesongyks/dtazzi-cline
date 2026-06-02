@@ -4,6 +4,7 @@
 import { getRuntimeTrpcClient } from "@/runtime/trpc-client";
 import type {
 	RuntimeAgentId,
+	RuntimeAgentInstallCheckResponse,
 	RuntimeAntcodeIssueDetailResponse,
 	RuntimeAntcodeIssuesResponse,
 	RuntimeClineAccountBalanceResponse,
@@ -281,4 +282,12 @@ export async function fetchAntcodeIssueDetail(
 export async function fetchSystemMemory(workspaceId: string | null): Promise<RuntimeSystemMemoryResponse> {
 	const trpcClient = getRuntimeTrpcClient(workspaceId);
 	return await trpcClient.runtime.getSystemMemory.query();
+}
+
+export async function checkAgentInstallation(
+	workspaceId: string | null,
+	command: string,
+): Promise<RuntimeAgentInstallCheckResponse> {
+	const trpcClient = getRuntimeTrpcClient(workspaceId);
+	return await trpcClient.runtime.checkAgentInstallation.mutate({ command });
 }

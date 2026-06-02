@@ -1411,3 +1411,15 @@ export const runtimeAntcodeIssueDetailResponseSchema = z.object({
 	error: z.string().optional(),
 });
 export type RuntimeAntcodeIssueDetailResponse = z.infer<typeof runtimeAntcodeIssueDetailResponseSchema>;
+
+export const runtimeAgentInstallCheckRequestSchema = z.object({
+	command: z.string().min(1),
+});
+export type RuntimeAgentInstallCheckRequest = z.infer<typeof runtimeAgentInstallCheckRequestSchema>;
+
+export const runtimeAgentInstallCheckResponseSchema = z.object({
+	installed: z.boolean(),
+	resolvedBinary: z.string(),
+	version: z.string().optional(),
+});
+export type RuntimeAgentInstallCheckResponse = z.infer<typeof runtimeAgentInstallCheckResponseSchema>;

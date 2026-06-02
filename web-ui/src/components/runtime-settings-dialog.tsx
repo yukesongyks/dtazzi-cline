@@ -23,6 +23,7 @@ import {
 	Palette,
 	Pencil,
 	Plus,
+	RefreshCw,
 	ScanSearch,
 	Settings,
 	Shield,
@@ -57,6 +58,7 @@ import type {
 	RuntimeConfiguredAgent,
 	RuntimeProjectShortcut,
 } from "@/runtime/types";
+import { checkAgentInstallation } from "@/runtime/runtime-config-query";
 import { useRuntimeConfig } from "@/runtime/use-runtime-config";
 import {
 	type BrowserNotificationPermission,
@@ -76,6 +78,8 @@ interface RuntimeSettingsAgentRowModel {
 	command: string;
 	installed: boolean | null;
 	configured: boolean;
+	resolvedBinary?: string;
+	version?: string;
 }
 
 interface AgentEditorState {
@@ -244,6 +248,8 @@ function AgentRow({
 	onSelect,
 	onEdit,
 	onDelete,
+	onRefreshInstall,
+	isRefreshingInstall,
 	deleteDisabled,
 	disabled,
 }: {
@@ -252,6 +258,8 @@ function AgentRow({
 	onSelect: () => void;
 	onEdit: () => void;
 	onDelete: () => void;
+	onRefreshInstall: () => void;
+	isRefreshingInstall: boolean;
 	deleteDisabled: boolean;
 	disabled: boolean;
 }): React.ReactElement {
@@ -286,6 +294,9 @@ function AgentRow({
 						{!isNativeCline && isInstalled ? (
 							<span className="inline-flex items-center rounded px-1.5 py-0.5 text-xs font-medium bg-status-green/10 text-status-green">
 								Installed
+								{agent.version ? (
+									<span className="ml-1 text-status-green/70">{agent.version}</span>
+								) : null}
 							</span>
 						) : isInstallStatusPending ? (
 							<span className="inline-flex items-center rounded px-1.5 py-0.5 text-xs font-medium bg-surface-3 text-text-secondary">
@@ -310,6 +321,17 @@ function AgentRow({
 					>
 						Install
 					</a>
+				) : null}
+				{!isNativeCline ? (
+					<Button
+						size="sm"
+						variant="ghost"
+						icon={<RefreshCw size={14} className={isRefreshingInstall ? "animate-spin" : ""} />}
+						disabled={disabled || isRefreshingInstall}
+						onClick={onRefreshInstall}
+					>
+						Check
+					</Button>
 				) : null}
 				<Button size="sm" variant="ghost" icon={<Pencil size={14} />} disabled={disabled} onClick={onEdit}>
 					Edit
@@ -496,6 +518,7 @@ export function RuntimeSettingsDialog({
 	const [copiedVariableToken, setCopiedVariableToken] = useState<string | null>(null);
 	const [saveError, setSaveError] = useState<string | null>(null);
 	const [pendingShortcutScrollIndex, setPendingShortcutScrollIndex] = useState<number | null>(null);
+	const [installCheckStates, setInstallCheckStates] = useState<Record<string, { loading: boolean; resolvedBinary?: string; version?: string; installed?: boolean }>>({});
 	const copiedVariableResetTimerRef = useRef<number | null>(null);
 	const shortcutsSectionRef = useRef<HTMLHeadingElement | null>(null);
 	const shortcutRowRefs = useRef<Array<HTMLDivElement | null>>([]);
@@ -540,6 +563,7 @@ export function RuntimeSettingsDialog({
 			const definition = definitionById.get(agent.id);
 			const catalogEntry = getRuntimeAgentCatalogEntry(agent.type);
 			const parsedCommand = parseConfiguredAgentCommand(agent.command);
+			const checkState = installCheckStates[agent.id];
 			return {
 				id: agent.id,
 				type: agent.type,
@@ -550,16 +574,20 @@ export function RuntimeSettingsDialog({
 					definition?.binary ??
 					(parsedCommand.ok ? parsedCommand.value.binary : (catalogEntry?.binary ?? agent.type)),
 				command: agent.command,
-				installed: resolveDisplayedAgentInstalled({
-					command: agent.command,
-					savedCommand: definition?.command,
-					savedInstalled: definition?.installed,
-					detectedCommands,
-				}),
+				installed: checkState?.installed !== undefined
+					? checkState.installed
+					: resolveDisplayedAgentInstalled({
+							command: agent.command,
+							savedCommand: definition?.command,
+							savedInstalled: definition?.installed,
+							detectedCommands,
+						}),
 				configured: agent.id === selectedAgentInstanceId,
+				resolvedBinary: checkState?.resolvedBinary,
+				version: checkState?.version,
 			};
 		});
-	}, [config?.agents, configuredAgents, selectedAgentInstanceId]);
+	}, [config?.agents, configuredAgents, selectedAgentInstanceId, installCheckStates]);
 	const displayedAgents = useMemo(() => supportedAgents, [supportedAgents]);
 	const navItems = useMemo(
 		() => SETTINGS_NAV_ITEMS.filter((item) => !item.clineOnly || selectedAgentId === "cline"),
@@ -939,6 +967,31 @@ export function RuntimeSettingsDialog({
 		);
 	};
 
+	const handleRefreshInstall = useCallback(async (agentId: string) => {
+		const agent = configuredAgents.find((candidate) => candidate.id === agentId);
+		if (!agent) {
+			return;
+		}
+		setInstallCheckStates((current) => ({ ...current, [agentId]: { loading: true } }));
+		try {
+			const result = await checkAgentInstallation(workspaceId, agent.command);
+			setInstallCheckStates((current) => ({
+				...current,
+				[agentId]: {
+					loading: false,
+					installed: result.installed,
+					resolvedBinary: result.resolvedBinary,
+					version: result.version,
+				},
+			}));
+		} catch {
+			setInstallCheckStates((current) => ({
+				...current,
+				[agentId]: { loading: false, installed: false },
+			}));
+		}
+	}, [configuredAgents, workspaceId]);
+
 	const handleEditAgent = (agentId: string) => {
 		const agent = configuredAgents.find((candidate) => candidate.id === agentId);
 		if (!agent) {
@@ -1152,6 +1205,8 @@ export function RuntimeSettingsDialog({
 								onSelect={() => setSelectedAgentInstanceId(agent.id)}
 								onEdit={() => handleEditAgent(agent.id)}
 								onDelete={() => handleDeleteAgent(agent.id)}
+								onRefreshInstall={() => handleRefreshInstall(agent.id)}
+								isRefreshingInstall={installCheckStates[agent.id]?.loading ?? false}
 								deleteDisabled={configuredAgents.length <= 1}
 								disabled={controlsDisabled}
 							/>

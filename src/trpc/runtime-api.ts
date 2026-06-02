@@ -17,6 +17,8 @@ import type { RuntimeConfigState } from "../config/runtime-config";
 import { updateGlobalRuntimeConfig, updateRuntimeConfig } from "../config/runtime-config";
 import { getConfiguredAgentCommandIssue } from "../core/agent-command";
 import type {
+	RuntimeAgentInstallCheckRequest,
+	RuntimeAgentInstallCheckResponse,
 	RuntimeAntcodeIssueDetailRequest,
 	RuntimeAntcodeIssueDetailResponse,
 	RuntimeAntcodeIssuesRequest,
@@ -53,7 +55,7 @@ import {
 import { isHomeAgentSessionId } from "../core/home-agent-session";
 import { resolveTaskTitle } from "../core/task-title.js";
 import { openInBrowser } from "../server/browser";
-import { buildRuntimeConfigResponse, resolveAgentCommand } from "../terminal/agent-registry";
+import { buildRuntimeConfigResponse, detectAgentInstallation, resolveAgentCommand } from "../terminal/agent-registry";
 import type { TerminalSessionManager } from "../terminal/session-manager";
 import { getGitStdout } from "../workspace/git-utils";
 import { resolveTaskCwd } from "../workspace/task-worktree";
@@ -1069,6 +1071,12 @@ export function createRuntimeApi(deps: CreateRuntimeApiDependencies): RuntimeTrp
 				const message = error instanceof Error ? error.message : String(error);
 				return { ok: false, issue: null, error: message };
 			}
+		},
+		checkAgentInstallation: async (
+			_workspaceScope,
+			input: RuntimeAgentInstallCheckRequest,
+		): Promise<RuntimeAgentInstallCheckResponse> => {
+			return await detectAgentInstallation(input.command);
 		},
 	};
 }

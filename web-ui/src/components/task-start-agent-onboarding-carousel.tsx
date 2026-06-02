@@ -83,7 +83,7 @@ export const TASK_START_ONBOARDING_SLIDES: OnboardingSlide[] = [
 	},
 ];
 
-const ONBOARDING_AGENT_IDS: readonly RuntimeAgentId[] = ["cline", "claude", "antcc", "codex", "droid", "kiro", "kimi"];
+const ONBOARDING_AGENT_IDS: readonly RuntimeAgentId[] = ["cline", "claude", "antcc", "cfuse", "codex", "droid", "kiro", "kimi"];
 const FALLBACK_ONBOARDING_SLIDE: OnboardingSlide = {
 	kind: "agent-selection",
 	title: "",
@@ -299,6 +299,9 @@ function resolveInstallInstructions(agentId: RuntimeAgentId): string {
 	if (agentId === "antcc") {
 		return "AntCC via CodeFuse (cfuse --cc) for enterprise Claude Code workflows.";
 	}
+	if (agentId === "cfuse") {
+		return "CFuse unified CLI — use cfuse --cx for antcodex mode or cfuse -cc for antcc mode.";
+	}
 	if (agentId === "codex") {
 		return "OpenAI's coding agent CLI with access to the latest GPT models.";
 	}
@@ -316,6 +319,9 @@ function getInstallLinkLabel(agentId: RuntimeAgentId): string {
 		return "Learn more";
 	}
 	if (agentId === "antcc") {
+		return "Learn more";
+	}
+	if (agentId === "cfuse") {
 		return "Learn more";
 	}
 	if (agentId === "codex") {

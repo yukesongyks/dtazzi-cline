@@ -90,6 +90,14 @@ export const RUNTIME_AGENT_CATALOG: RuntimeAgentCatalogEntry[] = [
 		autonomousArgs: ["--dangerously-skip-permissions"],
 		installUrl: "https://code.alipay.com/antchain_efficiency/dtazzi_cline",
 	},
+	{
+		id: "cfuse",
+		label: "CFuse",
+		binary: "cfuse",
+		baseArgs: [],
+		autonomousArgs: [],
+		installUrl: "https://code.alipay.com/antchain_efficiency/dtazzi_cline",
+	},
 ];
 
 // Temporarily keep launch support scoped to the core agent set.
@@ -103,6 +111,7 @@ export const RUNTIME_LAUNCH_SUPPORTED_AGENT_IDS: readonly RuntimeAgentId[] = [
 	"kimi",
 	"kimi-code",
 	"antcc",
+	"cfuse",
 	// "opencode",
 	// "gemini",
 ];

@@ -86,10 +86,11 @@ export const runtimeAgentIdSchema = z.enum([
 	"kimi",
 	"kimi-code",
 	"antcc",
+	"cfuse",
 ]);
 export type RuntimeAgentId = z.infer<typeof runtimeAgentIdSchema>;
 
-export const runtimeConfigurableAgentTypeSchema = z.enum(["cline", "claude", "codex", "kimi", "kimi-code"]);
+export const runtimeConfigurableAgentTypeSchema = z.enum(["cline", "claude", "codex", "kimi", "kimi-code", "cfuse"]);
 export type RuntimeConfigurableAgentType = z.infer<typeof runtimeConfigurableAgentTypeSchema>;
 
 export const runtimeAgentInstanceIdSchema = z.string().min(1);

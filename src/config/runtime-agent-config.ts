@@ -10,10 +10,18 @@ export const CONFIGURABLE_AGENT_TYPES: readonly RuntimeConfigurableAgentType[] =
 	"codex",
 	"kimi",
 	"kimi-code",
+	"cfuse",
 ];
 
 export function isConfigurableAgentType(value: unknown): value is RuntimeConfigurableAgentType {
-	return value === "cline" || value === "claude" || value === "codex" || value === "kimi" || value === "kimi-code";
+	return (
+		value === "cline" ||
+		value === "claude" ||
+		value === "codex" ||
+		value === "kimi" ||
+		value === "kimi-code" ||
+		value === "cfuse"
+	);
 }
 
 export function createDefaultConfiguredAgents(): RuntimeConfiguredAgent[] {

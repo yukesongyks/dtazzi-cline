@@ -1,0 +1,15 @@
+schema: opsx-1.0
+context: |
+  Kanban is a TypeScript/Node.js coding agent platform. This change adds a test-report skill
+  that auto-generates structured test reports from test execution results.
+rules:
+  proposal:
+    - Requirements must be testable and observable
+    - Mark out-of-scope work explicitly
+    - Capture edge cases and failure behavior
+  specs:
+    - Each spec covers one capability area
+    - Include acceptance criteria per spec
+  tasks:
+    - Tasks must be ordered by dependency
+    - Each task is independently verifiable

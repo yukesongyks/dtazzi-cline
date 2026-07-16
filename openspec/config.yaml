@@ -1,0 +1,22 @@
+# OpenSpec OPSX Configuration
+# Generated for test-report-skill change
+
+context: |
+  This is a Kanban project - a TypeScript/Node.js monorepo for a developer productivity application.
+  The project uses Vitest for its own testing, and the skill being designed will be a reusable agent skill
+  for generating test reports from various test framework outputs.
+
+rules:
+  proposal:
+    - Must include clear scope boundaries and non-goals
+    - Must reference the user stories from the original requirements
+  specs:
+    - Use Given/When/Then format for user-visible scenarios
+    - Each spec file maps to one domain area (parsing, report-generation, test-execution)
+  design:
+    - Include architecture decisions with rationale
+    - Plugin-based parser design is a key architectural constraint
+  tasks:
+    - Use Markdown checkboxes
+    - Group by implementation area
+    - Include validation tasks

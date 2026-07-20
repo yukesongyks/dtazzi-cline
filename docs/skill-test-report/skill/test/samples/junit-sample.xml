@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="math.test.ts" file="src/math.test.ts" tests="4" failures="1" errors="0" skipped="1" time="0.123">
+    <testcase name="加法应返回正确结果" classname="math.add" time="0.012" />
+    <testcase name="减法应处理负数" classname="math.sub" time="0.008" status="pass" />
+    <testcase name="除法应抛除零错误" classname="math.div" time="0.004">
+      <failure message="AssertionError: expected throw /除零/ 但未抛出" type="AssertionError">AssertionError: expected throw /除零/ 但未抛出
+    at Object.&lt;anonymous&gt; (src/math.test.ts:42:14)
+    at processTicksAndRejections (node:internal/process/task_queues:96:94)</failure>
+    </testcase>
+    <testcase name="乘法边界用例（跳过）" classname="math.mul" time="0">
+      <skipped />
+    </testcase>
+  </testsuite>
+</testsuites>

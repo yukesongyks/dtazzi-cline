@@ -1,0 +1,20 @@
+{
+  "name": "@kanban/test-report-skill",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Test Report Skill: parse test results and generate standardized Markdown reports.",
+  "main": "dist/index.js",
+  "bin": {
+    "test-report": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.5.0"
+  }
+}

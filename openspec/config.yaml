@@ -1,0 +1,22 @@
+# OpenSpec config for @alipay/dtazzicloud
+# Tracks changes under openspec/changes/<change-name>/.
+# CLI (`openspec`) is not installed in this runtime; artifacts are authored by hand
+# following the openspec-propose skill contract and validated by openspec-apply later.
+
+project:
+  name: "@alipay/dtazzicloud"
+  type: "npm-package"
+  language: "typescript"
+  runtime: "node >=22 (ESM)"
+
+context:
+  - "Kanban CLI foundation for coding agents; ships its own skills registry."
+  - "Primary test framework is Vitest (`npm test` = `vitest run`). web-ui also uses Vitest."
+  - "Dependencies already include `fast-xml-parser` (JUnit XML) and `zod` (schema validation)."
+  - "Skills are managed assets under a skills registry; this change adds a new managed skill `test-report`."
+
+rules:
+  artifacts_must_be_self_describing: true
+  scenarios_prefer_given_when_then: true
+  tasks_use_markdown_checkboxes: true
+  never_mark_tasks_complete_during_propose: true

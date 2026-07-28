@@ -30,6 +30,12 @@ public final class BubbleSorter {
         if (arr == null) {
             throw new NullPointerException("arr must not be null");
         }
+        // 方法入口 fail-fast：拒绝含 null 元素的数组（与系分 §3.2 一致）
+        for (T element : arr) {
+            if (element == null) {
+                throw new NullPointerException("arr must not contain null elements");
+            }
+        }
 
         for (int i = 0, n = arr.length; i < n - 1; i++) {
             boolean swapped = false;

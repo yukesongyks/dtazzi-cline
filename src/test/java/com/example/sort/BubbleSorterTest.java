@@ -70,6 +70,13 @@ class BubbleSorterTest {
     }
 
     @Test
+    @DisplayName("含 null 元素的数组应抛出 NullPointerException")
+    void sortArrayWithNullElementThrowsNpe() {
+        Integer[] arr = {1, null, 2};
+        assertThrows(NullPointerException.class, () -> BubbleSorter.sort(arr));
+    }
+
+    @Test
     @DisplayName("相等元素的相对顺序保持不变（稳定性）")
     void sortStableForEqualElements() {
         // 仅按 value 比较，seq 标记原始相对顺序以验证稳定性

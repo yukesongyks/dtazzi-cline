@@ -98,6 +98,10 @@ export default defineConfig({
 		allowedHosts: true,
 		cors: true,
 		proxy: {
+			"/api/demo": {
+				target: `http://127.0.0.1:${process.env.DEMO_BACKEND_PORT || "8080"}`,
+				changeOrigin: true,
+			},
 			"/api": {
 				target: `http://127.0.0.1:${process.env.KANBAN_RUNTIME_PORT || "3484"}`,
 				changeOrigin: true,

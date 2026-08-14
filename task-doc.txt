@@ -1,0 +1,6 @@
+=== dtazzi-cline 仓库任务文档 ===
+生成时间: 2025-07-17
+仓库: dtazzi-cline
+分支: AI/task-DEV-f4ad1a6e-7360-11f1-8c66-df5563d236aa-9285b5a5-acc0-45af-
+项目类型: TypeScript/Node.js (CLI 工具)
+说明: 本文件为跨仓库协同开发任务中在 dtazzi-cline 仓库生成的简单 txt 文档。

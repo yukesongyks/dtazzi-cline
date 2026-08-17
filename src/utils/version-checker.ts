@@ -61,6 +61,7 @@ export function getCurrentVersion(): string {
 	const versionFromPkg = getVersionFromPackageJson();
 	if (versionFromPkg) {
 		versionCache.currentVersion = versionFromPkg;
+		versionCache.timestamp = Date.now();
 		return versionFromPkg;
 	}
 
@@ -75,6 +76,7 @@ export function getCurrentVersion(): string {
 		if (parsed.dependencies?.["@alipay/dtazzicloud"]) {
 			const version = parsed.dependencies["@alipay/dtazzicloud"].version || "";
 			versionCache.currentVersion = version;
+			versionCache.timestamp = Date.now();
 			return version;
 		}
 	} catch {

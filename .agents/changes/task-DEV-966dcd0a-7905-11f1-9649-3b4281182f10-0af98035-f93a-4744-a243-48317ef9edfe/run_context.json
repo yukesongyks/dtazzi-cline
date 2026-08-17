@@ -1,0 +1,11 @@
+{
+  "blocker_count": 0,
+  "review_timestamp": "2026-08-17",
+  "files_reviewed": [
+    "web-ui/src/components/detail-panels/file-tree-panel.tsx:46",
+    "web-ui/src/components/top-bar.tsx:583",
+    "web-ui/src/components/runtime-settings-dialog.tsx:1329",
+    "web-ui/src/components/remote-file-browser-dialog.tsx:259"
+  ],
+  "conclusion": "PASS"
+}

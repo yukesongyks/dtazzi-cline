@@ -1326,7 +1326,7 @@ export function RuntimeSettingsDialog({
 								value={selectedPromptVariant}
 								onChange={(event) => setSelectedPromptVariant(event.target.value as TaskGitAction)}
 								disabled={controlsDisabled}
-								style={{ minWidth: 220 }}
+								className="min-w-[220px]"
 							>
 								{GIT_PROMPT_VARIANT_OPTIONS.map((option) => (
 									<option key={option.value} value={option.value}>

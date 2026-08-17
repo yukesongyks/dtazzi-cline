@@ -391,8 +391,7 @@ function ShortcutIconPicker({
 					side="bottom"
 					align="start"
 					sideOffset={4}
-					className="z-50 rounded-md border border-border bg-surface-2 p-1 shadow-lg"
-					style={{ animation: "kb-tooltip-show 100ms ease" }}
+					className="kb-tooltip-anim z-50 rounded-md border border-border bg-surface-2 p-1 shadow-lg"
 				>
 					<div className="flex gap-0.5">
 						{RUNTIME_SHORTCUT_ICON_OPTIONS.map((option) => {

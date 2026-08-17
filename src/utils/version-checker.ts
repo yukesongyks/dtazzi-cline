@@ -3,7 +3,7 @@
  *
  * 版本检查工具，用于检测 dtazzicloud 是否需要自动更新
  */
-import { execSync } from "node:child_process";
+import { execFile, execSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -198,32 +198,34 @@ export async function getLatestVersionAsync(timeoutMs = 5000): Promise<string> {
 		return versionCache.latestVersion;
 	}
 
-	return new Promise((resolve) => {
-		const timer = setTimeout(() => {
-			resolve("");
-		}, timeoutMs);
+	try {
+		const env = getCurrentEnv();
+		const tag = getTagForEnv(env);
 
-		try {
-			const env = getCurrentEnv();
-			const tag = getTagForEnv(env);
+		const stdout = await new Promise<string>((resolve, reject) => {
+			execFile(
+				"tnpm",
+				["view", `@alipay/dtazzicloud@${tag}`, "version"],
+				{
+					encoding: "utf8",
+					stdio: ["pipe", "pipe", "pipe"],
+					signal: AbortSignal.timeout(timeoutMs),
+				},
+				(error, stdout, _stderr) => {
+					if (error) reject(error);
+					else resolve(stdout);
+				},
+			);
+		});
 
-			const result = execSync(`tnpm view @alipay/dtazzicloud@${tag} version`, {
-				encoding: "utf8",
-				stdio: ["pipe", "pipe", "pipe"],
-				timeout: timeoutMs,
-			});
-
-			clearTimeout(timer);
-			const version = result.trim();
-			versionCache.latestVersion = version;
-			versionCache.timestamp = Date.now();
-			resolve(version);
-		} catch {
-			clearTimeout(timer);
-			// 静默处理错误，不打印日志
-			resolve("");
-		}
-	});
+		const version = stdout.trim();
+		versionCache.latestVersion = version;
+		versionCache.timestamp = Date.now();
+		return version;
+	} catch {
+		// 静默处理错误，不打印日志
+		return "";
+	}
 }
 
 /**

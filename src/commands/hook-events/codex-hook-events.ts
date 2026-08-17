@@ -264,10 +264,11 @@ function extractRolloutCommandFromPayload(payload: Record<string, unknown>): str
 	return command || null;
 }
 
-export async function resolveCodexRolloutFinalMessageForCwd(
+async function scanCodexRolloutFiles<T>(
 	cwd: string,
-	sessionsRoot = join(homedir(), ".codex", "sessions"),
-): Promise<string | null> {
+	sessionsRoot: string,
+	fileMatcher: (filePath: string, fileStat: Stats) => Promise<T | null>,
+): Promise<T | null> {
 	if (!cwd.trim()) {
 		return null;
 	}
@@ -293,11 +294,25 @@ export async function resolveCodexRolloutFinalMessageForCwd(
 			continue;
 		}
 
+		const result = await fileMatcher(filePath, fileStat);
+		if (result !== null) {
+			return result;
+		}
+	}
+
+	return null;
+}
+
+export async function resolveCodexRolloutFinalMessageForCwd(
+	cwd: string,
+	sessionsRoot = join(homedir(), ".codex", "sessions"),
+): Promise<string | null> {
+	return scanCodexRolloutFiles(cwd, sessionsRoot, async (filePath, fileStat) => {
 		let scanText = "";
 		try {
 			scanText = await readFileTail(filePath, fileStat.size, CODEX_ROLLOUT_TAIL_SCAN_BYTES);
 		} catch {
-			continue;
+			return null;
 		}
 		const lines = scanText.split(/\r?\n/);
 		for (let index = lines.length - 1; index >= 0; index -= 1) {
@@ -314,9 +329,8 @@ export async function resolveCodexRolloutFinalMessageForCwd(
 				return finalMessage;
 			}
 		}
-	}
-
-	return null;
+		return null;
+	});
 }
 
 async function findCodexRolloutFileForCwd(
@@ -324,36 +338,12 @@ async function findCodexRolloutFileForCwd(
 	sessionStartedAtMs: number,
 	sessionsRoot: string,
 ): Promise<string | null> {
-	if (!cwd.trim()) {
-		return null;
-	}
-	const normalizedCwd = normalizePathForComparison(cwd);
-	const encodedCwd = JSON.stringify(normalizedCwd);
-	const rolloutFiles = (await listCodexRolloutFiles(sessionsRoot)).slice(0, MAX_CODEX_ROLLOUT_FILES_TO_SCAN);
-
-	for (const filePath of rolloutFiles) {
-		let fileStat: Stats;
-		try {
-			fileStat = await stat(filePath);
-			if (fileStat.mtimeMs < sessionStartedAtMs - CODEX_ROLLOUT_FILE_FRESH_WINDOW_MS) {
-				continue;
-			}
-		} catch {
-			continue;
+	return scanCodexRolloutFiles(cwd, sessionsRoot, async (filePath, fileStat) => {
+		if (fileStat.mtimeMs < sessionStartedAtMs - CODEX_ROLLOUT_FILE_FRESH_WINDOW_MS) {
+			return null;
 		}
-
-		let prefix = "";
-		try {
-			prefix = await readFilePrefix(filePath, Math.min(fileStat.size, CODEX_ROLLOUT_MATCH_SCAN_BYTES));
-		} catch {
-			continue;
-		}
-		if (prefix.includes(`"cwd":${encodedCwd}`)) {
-			return filePath;
-		}
-	}
-
-	return null;
+		return filePath;
+	});
 }
 
 function mapCodexRolloutActivityLine(line: string): { mapped: CodexMappedHookEvent; fingerprint: string } | null {

@@ -579,8 +579,7 @@ export function TopBar({
 													icon={<ChevronDown size={12} />}
 													aria-label="Select shortcut"
 													disabled={Boolean(runningShortcutLabel)}
-													className="rounded-l-none border-l-0 kb-navbar-btn"
-													style={{ width: 24, paddingLeft: 0, paddingRight: 0 }}
+													className="rounded-l-none border-l-0 kb-navbar-btn w-6 pl-0 pr-0"
 												/>
 											</RadixPopover.Trigger>
 											<RadixPopover.Portal>

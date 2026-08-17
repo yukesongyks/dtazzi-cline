@@ -255,8 +255,7 @@ function DirectoryEntryList({
 }): ReactElement {
 	return (
 		<div
-			className="flex-1 min-h-0 overflow-y-auto border-t border-b border-border"
-			style={{ minHeight: 200, maxHeight: 360 }}
+			className="flex-1 min-h-0 overflow-y-auto border-t border-b border-border min-h-[200px] max-h-[360px]"
 		>
 			{isLoading ? (
 				<div className="flex items-center justify-center py-12">

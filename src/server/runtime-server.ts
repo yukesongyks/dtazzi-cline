@@ -196,12 +196,14 @@ export async function createRuntimeServer(deps: CreateRuntimeServerDependencies)
 		if (activeWorkspaceId) {
 			workspaceIds.add(activeWorkspaceId);
 		}
-		for (const workspaceId of workspaceIds) {
-			await disposeClineTaskSessionServiceAsync(workspaceId);
-			deps.disposeWorkspace(workspaceId, {
-				stopTerminalSessions: true,
-			});
-		}
+		await Promise.all(
+			Array.from(workspaceIds).map(async (workspaceId) => {
+				await disposeClineTaskSessionServiceAsync(workspaceId);
+				deps.disposeWorkspace(workspaceId, {
+					stopTerminalSessions: true,
+				});
+			}),
+		);
 		deps.workspaceRegistry.clearActiveWorkspace();
 	};
 

@@ -80,8 +80,7 @@ function FirstShortcutIconPicker({
 					side="bottom"
 					align="start"
 					sideOffset={4}
-					className="z-50 rounded-md border border-border bg-surface-2 p-1 shadow-lg"
-					style={{ animation: "kb-tooltip-show 100ms ease" }}
+					className="kb-tooltip-anim z-50 rounded-md border border-border bg-surface-2 p-1 shadow-lg"
 				>
 					<div className="flex gap-0.5">
 						{RUNTIME_SHORTCUT_ICON_OPTIONS.map((option) => {
@@ -585,8 +584,7 @@ export function TopBar({
 											</RadixPopover.Trigger>
 											<RadixPopover.Portal>
 												<RadixPopover.Content
-													className="z-50 rounded-lg border border-border bg-surface-2 p-1 shadow-xl"
-													style={{ animation: "kb-tooltip-show 100ms ease" }}
+													className="kb-tooltip-anim z-50 rounded-lg border border-border bg-surface-2 p-1 shadow-xl"
 													sideOffset={5}
 													align="end"
 												>

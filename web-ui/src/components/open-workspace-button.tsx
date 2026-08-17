@@ -74,8 +74,7 @@ export function OpenWorkspaceButton({
 				</RadixPopover.Trigger>
 				<RadixPopover.Portal>
 					<RadixPopover.Content
-						className="z-50 rounded-lg border border-border bg-surface-2 p-1 shadow-xl"
-						style={{ animation: "kb-tooltip-show 100ms ease" }}
+						className="kb-tooltip-anim z-50 rounded-lg border border-border bg-surface-2 p-1 shadow-xl"
 						sideOffset={5}
 						align="end"
 					>

@@ -43,6 +43,18 @@ import type {
 	RuntimeDebugResetAllStateResponse,
 	RuntimeDirectoryListRequest,
 	RuntimeDirectoryListResponse,
+	RuntimeDocumentCreateRequest,
+	RuntimeDocumentCreateResponse,
+	RuntimeDocumentDeleteRequest,
+	RuntimeDocumentDeleteResponse,
+	RuntimeDocumentGetRequest,
+	RuntimeDocumentGetResponse,
+	RuntimeDocumentListRequest,
+	RuntimeDocumentListResponse,
+	RuntimeDocumentSearchRequest,
+	RuntimeDocumentSearchResponse,
+	RuntimeDocumentUpdateRequest,
+	RuntimeDocumentUpdateResponse,
 	RuntimeFeaturebaseTokenResponse,
 	RuntimeGitCheckoutRequest,
 	RuntimeGitCheckoutResponse,
@@ -139,6 +151,18 @@ import {
 	runtimeDebugResetAllStateResponseSchema,
 	runtimeDirectoryListRequestSchema,
 	runtimeDirectoryListResponseSchema,
+	runtimeDocumentCreateRequestSchema,
+	runtimeDocumentCreateResponseSchema,
+	runtimeDocumentDeleteRequestSchema,
+	runtimeDocumentDeleteResponseSchema,
+	runtimeDocumentGetRequestSchema,
+	runtimeDocumentGetResponseSchema,
+	runtimeDocumentListRequestSchema,
+	runtimeDocumentListResponseSchema,
+	runtimeDocumentSearchRequestSchema,
+	runtimeDocumentSearchResponseSchema,
+	runtimeDocumentUpdateRequestSchema,
+	runtimeDocumentUpdateResponseSchema,
 	runtimeFeaturebaseTokenResponseSchema,
 	runtimeGitCheckoutRequestSchema,
 	runtimeGitCheckoutResponseSchema,
@@ -388,6 +412,14 @@ export interface RuntimeTrpcContext {
 	};
 	hooksApi: {
 		ingest: (input: RuntimeHookIngestRequest) => Promise<RuntimeHookIngestResponse>;
+	};
+	documentsApi: {
+		create: (input: RuntimeDocumentCreateRequest) => Promise<RuntimeDocumentCreateResponse>;
+		get: (input: RuntimeDocumentGetRequest) => Promise<RuntimeDocumentGetResponse>;
+		update: (input: RuntimeDocumentUpdateRequest) => Promise<RuntimeDocumentUpdateResponse>;
+		delete: (input: RuntimeDocumentDeleteRequest) => Promise<RuntimeDocumentDeleteResponse>;
+		list: (input?: RuntimeDocumentListRequest) => Promise<RuntimeDocumentListResponse>;
+		search: (input: RuntimeDocumentSearchRequest) => Promise<RuntimeDocumentSearchResponse>;
 	};
 }
 
@@ -770,6 +802,44 @@ export const runtimeAppRouter = t.router({
 			.output(runtimeHookIngestResponseSchema)
 			.mutation(async ({ ctx, input }) => {
 				return await ctx.hooksApi.ingest(input);
+			}),
+	}),
+	documents: t.router({
+		create: t.procedure
+			.input(runtimeDocumentCreateRequestSchema)
+			.output(runtimeDocumentCreateResponseSchema)
+			.mutation(async ({ ctx, input }) => {
+				return await ctx.documentsApi.create(input);
+			}),
+		get: t.procedure
+			.input(runtimeDocumentGetRequestSchema)
+			.output(runtimeDocumentGetResponseSchema)
+			.query(async ({ ctx, input }) => {
+				return await ctx.documentsApi.get(input);
+			}),
+		update: t.procedure
+			.input(runtimeDocumentUpdateRequestSchema)
+			.output(runtimeDocumentUpdateResponseSchema)
+			.mutation(async ({ ctx, input }) => {
+				return await ctx.documentsApi.update(input);
+			}),
+		delete: t.procedure
+			.input(runtimeDocumentDeleteRequestSchema)
+			.output(runtimeDocumentDeleteResponseSchema)
+			.mutation(async ({ ctx, input }) => {
+				return await ctx.documentsApi.delete(input);
+			}),
+		list: t.procedure
+			.input(runtimeDocumentListRequestSchema.optional())
+			.output(runtimeDocumentListResponseSchema)
+			.query(async ({ ctx, input }) => {
+				return await ctx.documentsApi.list(input);
+			}),
+		search: t.procedure
+			.input(runtimeDocumentSearchRequestSchema)
+			.output(runtimeDocumentSearchResponseSchema)
+			.query(async ({ ctx, input }) => {
+				return await ctx.documentsApi.search(input);
 			}),
 	}),
 });

@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { createServer, type IncomingMessage } from "node:http";
 import { createServer as createHttpsServer } from "node:https";
+import { homedir } from "node:os";
 import { join } from "node:path";
 
 import { createHTTPHandler } from "@trpc/server/adapters/standalone";
@@ -52,6 +53,8 @@ import type { TerminalSessionManager } from "../terminal/session-manager";
 import { createTerminalWebSocketBridge } from "../terminal/ws-server";
 import { type RuntimeTrpcContext, type RuntimeTrpcWorkspaceScope, runtimeAppRouter } from "../trpc/app-router";
 import { createHooksApi } from "../trpc/hooks-api";
+import { createDocumentsApi } from "../trpc/documents-api";
+import { DocumentService } from "../documents/document-service";
 import { createProjectsApi } from "../trpc/projects-api";
 import { createRuntimeApi } from "../trpc/runtime-api";
 import { createWorkspaceApi } from "../trpc/workspace-api";
@@ -125,6 +128,13 @@ export async function createRuntimeServer(deps: CreateRuntimeServerDependencies)
 	} catch {
 		throw new Error("Could not find web UI assets. Run `npm run build` to generate and package the web UI.");
 	}
+
+	const documentsDir = join(homedir(), ".cline", "kanban", "documents");
+	const documentService = new DocumentService({ documentsDir });
+	// Repair index on startup (rebuild from disk files if index is missing or corrupt)
+	documentService.repairIndex().catch((err: unknown) => {
+		console.warn("[documents] Index repair failed:", err);
+	});
 
 	const resolveWorkspaceScopeFromRequest = async (
 		request: IncomingMessage,
@@ -263,6 +273,7 @@ export async function createRuntimeServer(deps: CreateRuntimeServerDependencies)
 				broadcastRuntimeWorkspaceStateUpdated: deps.runtimeStateHub.broadcastRuntimeWorkspaceStateUpdated,
 				broadcastTaskReadyForReview: deps.runtimeStateHub.broadcastTaskReadyForReview,
 			}),
+			documentsApi: createDocumentsApi({ documentService }),
 		};
 	};
 

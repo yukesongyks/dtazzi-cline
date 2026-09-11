@@ -1411,3 +1411,134 @@ export const runtimeAntcodeIssueDetailResponseSchema = z.object({
 	error: z.string().optional(),
 });
 export type RuntimeAntcodeIssueDetailResponse = z.infer<typeof runtimeAntcodeIssueDetailResponseSchema>;
+
+// ── Document Module ────────────────────────────────────────────────────────
+
+/** 文档元数据索引条目 */
+export const runtimeDocumentMetaSchema = z.object({
+	id: z.string().uuid(),
+	title: z.string().min(1),
+	fileName: z.string().min(1),
+	taskId: z.string().nullable(),
+	createdBy: z.string(),
+	createdAt: z.string(),
+	updatedAt: z.string(),
+	size: z.number().int().nonnegative(),
+});
+export type RuntimeDocumentMeta = z.infer<typeof runtimeDocumentMetaSchema>;
+
+/** 文档索引文件结构 */
+export const runtimeDocumentIndexSchema = z.object({
+	version: z.number().int().positive(),
+	documents: z.array(runtimeDocumentMetaSchema),
+});
+export type RuntimeDocumentIndex = z.infer<typeof runtimeDocumentIndexSchema>;
+
+/** 创建文档请求 */
+export const runtimeDocumentCreateRequestSchema = z.object({
+	title: z.string().min(1, "Title must not be empty"),
+	content: z.string(),
+	taskId: z.string().nullable().optional(),
+});
+export type RuntimeDocumentCreateRequest = z.infer<typeof runtimeDocumentCreateRequestSchema>;
+
+/** 创建文档响应 */
+export const runtimeDocumentCreateResponseSchema = z.object({
+	code: z.string(),
+	msg: z.string(),
+	data: z
+		.object({
+			id: z.string().uuid(),
+			title: z.string(),
+			createdAt: z.string(),
+		})
+		.nullable(),
+});
+export type RuntimeDocumentCreateResponse = z.infer<typeof runtimeDocumentCreateResponseSchema>;
+
+/** 获取文档请求 */
+export const runtimeDocumentGetRequestSchema = z.object({
+	documentId: z.string().uuid("documentId must be a valid UUID"),
+});
+export type RuntimeDocumentGetRequest = z.infer<typeof runtimeDocumentGetRequestSchema>;
+
+/** 完整文档视图（含内容） */
+export const runtimeDocumentViewSchema = runtimeDocumentMetaSchema.extend({
+	content: z.string(),
+});
+export type RuntimeDocumentView = z.infer<typeof runtimeDocumentViewSchema>;
+
+/** 获取文档响应 */
+export const runtimeDocumentGetResponseSchema = z.object({
+	code: z.string(),
+	msg: z.string(),
+	data: runtimeDocumentViewSchema.nullable(),
+});
+export type RuntimeDocumentGetResponse = z.infer<typeof runtimeDocumentGetResponseSchema>;
+
+/** 更新文档请求 */
+export const runtimeDocumentUpdateRequestSchema = z.object({
+	documentId: z.string().uuid(),
+	title: z.string().min(1).optional(),
+	content: z.string().optional(),
+});
+export type RuntimeDocumentUpdateRequest = z.infer<typeof runtimeDocumentUpdateRequestSchema>;
+
+/** 更新文档响应 */
+export const runtimeDocumentUpdateResponseSchema = z.object({
+	code: z.string(),
+	msg: z.string(),
+	data: runtimeDocumentMetaSchema.nullable(),
+});
+export type RuntimeDocumentUpdateResponse = z.infer<typeof runtimeDocumentUpdateResponseSchema>;
+
+/** 删除文档请求 */
+export const runtimeDocumentDeleteRequestSchema = z.object({
+	documentId: z.string().uuid(),
+});
+export type RuntimeDocumentDeleteRequest = z.infer<typeof runtimeDocumentDeleteRequestSchema>;
+
+/** 删除文档响应 */
+export const runtimeDocumentDeleteResponseSchema = z.object({
+	code: z.string(),
+	msg: z.string(),
+});
+export type RuntimeDocumentDeleteResponse = z.infer<typeof runtimeDocumentDeleteResponseSchema>;
+
+/** 文档列表查询参数 */
+export const runtimeDocumentListRequestSchema = z.object({
+	page: z.number().int().positive().default(1).optional(),
+	pageSize: z.number().int().positive().max(100).default(20).optional(),
+	taskId: z.string().optional(),
+});
+export type RuntimeDocumentListRequest = z.infer<typeof runtimeDocumentListRequestSchema>;
+
+/** 文档列表响应条目 */
+export const runtimeDocumentListResponseSchema = z.object({
+	code: z.string(),
+	msg: z.string(),
+	data: z.object({
+		items: z.array(runtimeDocumentMetaSchema),
+		total: z.number().int().nonnegative(),
+	}),
+});
+export type RuntimeDocumentListResponse = z.infer<typeof runtimeDocumentListResponseSchema>;
+
+/** 搜索文档请求 */
+export const runtimeDocumentSearchRequestSchema = z.object({
+	keyword: z.string().min(1, "Keyword must not be empty"),
+	page: z.number().int().positive().default(1).optional(),
+	pageSize: z.number().int().positive().max(100).default(20).optional(),
+});
+export type RuntimeDocumentSearchRequest = z.infer<typeof runtimeDocumentSearchRequestSchema>;
+
+/** 搜索文档响应 */
+export const runtimeDocumentSearchResponseSchema = z.object({
+	code: z.string(),
+	msg: z.string(),
+	data: z.object({
+		items: z.array(runtimeDocumentMetaSchema),
+		total: z.number().int().nonnegative(),
+	}),
+});
+export type RuntimeDocumentSearchResponse = z.infer<typeof runtimeDocumentSearchResponseSchema>;
